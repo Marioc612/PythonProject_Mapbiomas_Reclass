@@ -162,7 +162,7 @@ if __name__ == "__main__":
         # Crear salida
         with rasterio.open(output_path, "w", **profile) as dst:
 
-            num_procs = min(12, mp.cpu_count())
+            num_procs = mp.cpu_count()
 
             with mp.Pool(
                     processes=num_procs,
@@ -179,5 +179,6 @@ if __name__ == "__main__":
                     dst.write(out_arr, 1, window=window)
 
         print(f" Guardado: {output_path}")
+
 
     print("PROCESO COMPLETO — Reclasificación con múltiples máscaras")
