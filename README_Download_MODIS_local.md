@@ -25,7 +25,7 @@ Each folder contains one HDF file per MODIS tile covering that region for that c
 
 ***** IMPORTANTE *****
 Requirements: Python ≥ 3.7, Earthdata Login account (free).
-- An active EDL token with bearer format:Authorization: Bearer <your_token_here>
+- An active EDL token with bearer format:Authorization: Bearer <your_token_here> -----> The token in the script must be changed (as its mine), and should be replaced.  
 
 ****** How the Script Works
 1. Date Range
