@@ -32,4 +32,16 @@ The script performs the following steps:
 
 Produces one reclassified raster per input file.
 
+### Final Classification ###
+Final Category	Value
+Forest	1
+Floodable forest	2
+Andean Herbaceous Complex	3
+Shrublands	4
+Savannas	5
+Croplands	6
+Grasslands	7
+Other	8
+Wetlands	9
+<img width="262" height="203" alt="image" src="https://github.com/user-attachments/assets/a4002bf5-21ed-4c5a-9b6c-8f08220ab5a4" />
 
