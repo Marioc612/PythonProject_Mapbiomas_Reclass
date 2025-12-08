@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 import time
 
 ################################################# Importante ---> el código lista solo los compuestos existentes de 8 días dentro del rango real
-# -----------------------------------------------
+
 # CONFIGURACIÓN DEL USUARIO
-# -----------------------------------------------
+
 
 EDL_TOKEN = "Bearer eyJ0eXAiOiJKV1QiLCJvcmlnaW4iOiJFYXJ0aGRhdGEgTG9naW4iLCJzaWciOiJlZGxqd3RwdWJrZXlfb3BzIiwiYWxnIjoiUlMyNTYifQ.eyJ0eXBlIjoiVXNlciIsInVpZCI6Im1hcmlvZXN0ZWJhbiIsImV4cCI6MTc2OTUxODM0OSwiaWF0IjoxNzY0MzM0MzQ5LCJpc3MiOiJodHRwczovL3Vycy5lYXJ0aGRhdGEubmFzYS5nb3YiLCJpZGVudGl0eV9wcm92aWRlciI6ImVkbF9vcHMiLCJhY3IiOiJlZGwiLCJhc3N1cmFuY2VfbGV2ZWwiOjN9.rDHh16vgZLcboEuoQWQSj2acvMTSXaqLCIfvi1f4kamVb6YftEkU0tre4ERo-Ax3VhbAjI-plb855A9_MKcgbPWHB84EnTwfHBPMDmRavs9Lb90wINLpKsz1iYy7cxGn_g2OHwTy9_F7xWDmGQhxnod0ZBZQJuHJACSUbFJX1hP-qU65p1KXqJXOKMEZnmVvPozqemtiiddWgaWJ4UIk-lIH4mW8jkon-pymFVEfEIzHL3y7lReEVEED7qF2vfnZKPxP0zd_qvACRjyWYrXvBl1AzpU4qiXw8aewnnAcQPzcvt1Jk_OSfY_UUD4zmirT2xMzpE5ydd_3-Y0ws7MXTw"    # <<<<<< Pega tu token completo aquí
 OUTPUT_DIR = "modis_downloads_prueba"
@@ -79,9 +79,9 @@ def safe_request(url, headers):
     return None
 
 
-# -----------------------------------------------
+
 # PREPARACIÓN
-# -----------------------------------------------
+
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 headers = {"Authorization": EDL_TOKEN}
@@ -92,9 +92,9 @@ end   = datetime.fromisoformat(END_DATE)
 start_time = time.time()
 print("\nIniciando proceso de descarga...\n")
 
-# -----------------------------------------------
+
 # DESCARGA PRINCIPAL
-# -----------------------------------------------
+
 
 for year, doy in generate_valid_modis_dates(start, end):
 
@@ -139,3 +139,4 @@ print("\n-------------------------------------------")
 print("Tiempo total de ejecución:")
 print(f" {h:02d}:{m:02d}:{s:02d} (HH:MM:SS)")
 print("-------------------------------------------\n")
+
