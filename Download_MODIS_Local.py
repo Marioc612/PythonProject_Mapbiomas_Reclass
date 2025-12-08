@@ -4,6 +4,7 @@ import requests
 from datetime import datetime, timedelta
 import time
 
+################################################# Importante ---> el código lista solo los compuestos existentes de 8 días dentro del rango real
 # -----------------------------------------------
 # CONFIGURACIÓN DEL USUARIO
 # -----------------------------------------------
@@ -14,8 +15,8 @@ OUTPUT_DIR = "modis_downloads_prueba"
 PRODUCT = "MOD09A1"
 COLLECTION = "61"
 
-START_DATE = "2010-01-01"
-END_DATE   = "2010-02-31"
+START_DATE = "2009-12-20" ## Download error depending on MODIS DOYS. If they do not match -->> won't download
+END_DATE   = "2010-01-10" ## Now, we just filter the DOYs available for ur range of dates ... See below in Spanish
 
 # Tiles que cubren Colombia, Ecuador, Perú, Bolivia, Noroeste Brasil
 TILES = [
@@ -34,24 +35,56 @@ TILES = [
 #    "h08v11","h09v11","h10v11","h11v11","h12v11"
 #]
 
+def generate_valid_modis_dates(start, end):
+    """
+    Produce SOLO los DOYs MODIS existentes (cada 8 días)
+    Dentro del rango de fechas reales dado por el usuario. 
+    P.e. para que incluya el último día de 2009 toca darle un rango : 2009.12.20 
+    YYYY.MM.DD así, nos aseguramos de coger el último día disponible del año 2009
+    """
+    # MOD09A1 empieza normalmente en DOY 001, 009, 017...
+    # Buscaremos DOYs desde 1 a 365/366 en cada año
+
+    current_year = start.year
+    last_year = end.year
+
+    while current_year <= last_year:
+        # Para cada año, iteramos DOYs válidos (1-366)
+        doy = 1
+        while doy <= 366:
+            try:
+                modis_day = datetime(current_year, 1, 1) + timedelta(days=doy - 1)
+            except:
+                break  # Año no tiene 366 días
+
+            # MODIS solo sirve DOYs MÚLTIPLOS DE 8 + 1 → 1, 9, 17, 25...
+            if ((doy - 1) % 8) != 0:
+                doy += 1
+                continue
+
+            # checamos si está dentro del rango del usuario
+            if start <= modis_day <= end:
+                yield current_year, doy
+
+            doy += 1
+
+        current_year += 1
+
+
+def safe_request(url, headers):
+    """Evita errores 404 silenciosamente."""
+    r = requests.get(url, headers=headers)
+    if r.status_code == 200:
+        return r
+    return None
+
+
 # -----------------------------------------------
 # PREPARACIÓN
 # -----------------------------------------------
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-headers = {
-    "Authorization": EDL_TOKEN
-}
-
-BASE_URL = "https://ladsweb.modaps.eosdis.nasa.gov/archive/allData"
-
-def generate_8day_dates(start, end):
-    """Genera fechas cada 8 días en rango."""
-    d = start
-    while d <= end:
-        yield d
-        d += timedelta(days=8)
+headers = {"Authorization": EDL_TOKEN}
 
 start = datetime.fromisoformat(START_DATE)
 end   = datetime.fromisoformat(END_DATE)
@@ -62,33 +95,29 @@ print("\nIniciando proceso de descarga...\n")
 # -----------------------------------------------
 # DESCARGA PRINCIPAL
 # -----------------------------------------------
-for date in generate_8day_dates(start, end):
-    year = date.year
-    doy  = date.timetuple().tm_yday
+
+for year, doy in generate_valid_modis_dates(start, end):
 
     dstr = f"{doy:03d}"
-    dir_url = f"{BASE_URL}/{COLLECTION}/{PRODUCT}/{year}/{dstr}/"
+    dir_url = f"https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/{COLLECTION}/{PRODUCT}/{year}/{dstr}/"
 
     print(f" Revisando {dir_url}")
 
-    # Obtener HTML de la carpeta
-    r = requests.get(dir_url, headers=headers)
-    if r.status_code != 200:
-        print(f" No se pudo acceder al directorio ({r.status_code})")
+    r = safe_request(dir_url, headers)
+    if r is None:
+        print("  No existe este DOY (no hay compuesto).")
         continue
 
     html = r.text
 
-    # Buscar archivos .hdf por tile con regex
     for tile in TILES:
-        pattern = rf"MOD09A1\.A{year}{dstr}\.{tile}\..*?\.hdf"
+        pattern = rf"{PRODUCT}\.A{year}{dstr}\.{tile}\..*?\.hdf"
         matches = re.findall(pattern, html)
 
         for filename in matches:
             file_url = dir_url + filename
             outpath = os.path.join(OUTPUT_DIR, filename)
 
-            # Evitar re-descargar
             if os.path.exists(outpath):
                 print(f"  ✓ Ya existe: {filename}")
                 continue
@@ -99,18 +128,14 @@ for date in generate_8day_dates(start, end):
             with open(outpath, "wb") as f:
                 f.write(file.content)
 
-print(" Descarga completa.")
+print("\n Descarga completa.")
 
-end_time = time.time()
-elapsed = end_time - start_time
-
-hours = int(elapsed // 3600)
-minutes = int((elapsed % 3600) // 60)
-seconds = int(elapsed % 60)
+elapsed = time.time() - start_time
+h = int(elapsed//3600)
+m = int((elapsed%3600)//60)
+s = int(elapsed%60)
 
 print("\n-------------------------------------------")
 print("Tiempo total de ejecución:")
-print(f" {hours:02d}:{minutes:02d}:{seconds:02d} (HH:MM:SS)")
+print(f" {h:02d}:{m:02d}:{s:02d} (HH:MM:SS)")
 print("-------------------------------------------\n")
-
-
